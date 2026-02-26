@@ -168,7 +168,14 @@ class TelegramHandler:
                     audio_bytes = f.read()
 
                 # Call Gemini for transcription
-                prompt = "Transcreva este áudio com precisão absoluta, em Português. Formate o texto usando parágrafos e sem fazer resumos, apenas a transcrição fiel."
+                prompt = (
+                    "Atue como um especialista em comunicação e oratória. "
+                    "Sua tarefa principal é transcrever este áudio com precisão absoluta em Português (sem inventar palavras ou fazer resumos). "
+                    "No entanto, preste muita atenção à cadência da fala, ao tom, a eventuais gaguejos ou repetições, às pausas reflexivas/respiratórias e às mudanças de tema. "
+                    "Use essas pistas não-verbais da minha voz para adicionar a pontuação correta (vírgulas, pontos e vírgulas, reticências, etc.) "
+                    "e, o mais importante, para QUEBRAR O TEXTO em parágrafos muito bem estruturados sempre que houver uma clara mudança de ritmo ou de ideia. "
+                    "O objetivo é gerar uma transcrição fiel que reflita o ritmo real e as falhas/sucessos da minha expressão verbal, me ajudando a analisar e melhorar meu fluxo de pensamento e comunicação."
+                )
                 
                 response = authenticator.client.models.generate_content(
                     model='gemini-2.5-flash',
