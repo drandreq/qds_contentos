@@ -200,6 +200,16 @@ class TelegramHandler:
                 if "bot" in locals() and "chat_id" in locals():
                     await bot.send_message(chat_id=chat_id, text="❌ Ocorreu um erro na transcrição do áudio com a Gemini API.")
             finally:
+                # Optional Cleanup: Remove local file after successful processing
+                keep_audio = os.getenv("TELEGRAM_KEEP_AUDIO", "false").lower() == "true"
+                if not keep_audio:
+                    try:
+                        if os.path.exists(filepath):
+                            os.remove(filepath)
+                            logger.info(f"Deleted temporary audio file: {filepath}")
+                    except Exception as e:
+                        logger.warning(f"Failed to delete temporary audio {filepath}: {e}")
+
                 self._voice_queue.task_done()
 
     async def test_format_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):

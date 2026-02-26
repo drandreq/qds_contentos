@@ -28,6 +28,7 @@ function Check-EnvironmentFile {
         "TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here" | Out-File -FilePath $PathToEnvFile -Encoding utf8 -Append
         "TELEGRAM_WEBHOOK_URL=" | Out-File -FilePath $PathToEnvFile -Encoding utf8 -Append
         "TELEGRAM_AUTHORIZED_USER_IDS=12345678,87654321" | Out-File -FilePath $PathToEnvFile -Encoding utf8 -Append
+        "TELEGRAM_KEEP_AUDIO=false" | Out-File -FilePath $PathToEnvFile -Encoding utf8 -Append
         "CONTENTOS_WORDS_PER_MINUTE=150" | Out-File -FilePath $PathToEnvFile -Encoding utf8 -Append
     }
 }
