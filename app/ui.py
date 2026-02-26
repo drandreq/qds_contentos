@@ -1,15 +1,17 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="Content-OS Studio",
+    page_title="ContentOS Studio",
     page_icon="🧠",
-    layout="wide"
+    layout="wide",
 )
 
-st.title("🧠 Content-OS Studio")
-st.write("---")
+st.title("🏠 ContentOS Studio")
+st.markdown("### Bem-vindo ao ContentOS")
+st.write("A interface unificada para gerenciar The Sovereign Vault (MRWD) e agendamentos.")
 
-st.info("Sprint 1 Complete: Frontend infrastructure is active!")
-st.write("The Streamlit container is successfully communicating with the host network.")
+st.info("👈 Use a barra lateral para navegar entre as ferramentas e páginas disponíveis.")
+
+st.markdown("**(Em breve na Sprint 7 completa: Editor de Timeline, Preview de Slides e Commit Atômico)**")
 
 # Sprint 7 will implement the full timeline reader and CSS slide previewer here.
