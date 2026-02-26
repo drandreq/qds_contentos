@@ -1,11 +1,12 @@
 import logging
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from core.authenticator import authenticator
 from core.mp_dialect_parser import compiler
 from core.atomic_filesystem import atomic_fs
+from core.telegram_handler import telegram_bot
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,11 +21,19 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to initialize Google AI SDK: {e}")
         # Note: We do not hard-crash the API here so the health check can report the failure
+        
+    # Sprint 5: Initialize and Start Telegram Bot
+    try:
+        telegram_bot.initialize()
+        await telegram_bot.start_ptb()
+    except Exception as e:
+        logger.error(f"Failed to start Telegram Bot: {e}")
     
     yield
     
     # Clean up (if needed)
     logger.info("Shutting down ContentOS.")
+    await telegram_bot.stop_ptb()
 
 contentos_application = FastAPI(
     title="ContentOS",
@@ -32,6 +41,14 @@ contentos_application = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+@contentos_application.post("/v1/telegram/webhook")
+async def telegram_webhook(request: Request):
+    """
+    Sprint 5: Telegram Webhook Ingestion
+    Receives payloads directly from the Telegram API.
+    """
+    return await telegram_bot.process_update(request)
 
 @contentos_application.get("/health")
 async def health_check():

@@ -26,6 +26,8 @@ function Check-EnvironmentFile {
         Write-Host "[!] Warning: .env file not found. Creating a template..." -ForegroundColor Yellow
         "GOOGLE_API_KEY=your_google_api_key_here" | Out-File -FilePath $PathToEnvFile -Encoding utf8
         "TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here" | Out-File -FilePath $PathToEnvFile -Encoding utf8 -Append
+        "TELEGRAM_WEBHOOK_URL=" | Out-File -FilePath $PathToEnvFile -Encoding utf8 -Append
+        "TELEGRAM_AUTHORIZED_USER_IDS=12345678,87654321" | Out-File -FilePath $PathToEnvFile -Encoding utf8 -Append
         "CONTENTOS_WORDS_PER_MINUTE=150" | Out-File -FilePath $PathToEnvFile -Encoding utf8 -Append
     }
 }

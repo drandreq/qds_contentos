@@ -17,6 +17,8 @@ function check_environment_file() {
     echo "[!] Warning: .env file not found. Creating a template..."
     echo "GOOGLE_API_KEY=your_google_api_key_here" > "$path_to_env_file"
     echo "TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here" >> "$path_to_env_file"
+    echo "TELEGRAM_WEBHOOK_URL=" >> "$path_to_env_file"
+    echo "TELEGRAM_AUTHORIZED_USER_IDS=12345678,87654321" >> "$path_to_env_file"
     echo "CONTENTOS_WORDS_PER_MINUTE=150" >> "$path_to_env_file"
   fi
 }
