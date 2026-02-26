@@ -50,20 +50,18 @@ def search_knowledge_tool(query: str, dimension_filter: Optional[str] = None) ->
         return f"Error executing search: {str(e)}"
 
 @tool
-def apply_dimension_tool(filepath: str, dimension_to_inject: str, instructions: str) -> str:
+def save_document_tool(filepath: str, updated_content: str) -> str:
     """
-    Actively rewrite a specific file in the Vault by injecting or enhancing a specific Heptatomo dimension.
-    The updated text is saved atomically back to the file system.
+    Actively save the rewritten or repurposed text back into the Vault file.
+    Use this tool ONLY after you have analyzed and rewritten the text yourself.
     
     Args:
-        filepath: The absolute or Vault-relative path to the raw text or JSON file (e.g., "03_voice/voice_123.json").
-        dimension_to_inject: The Heptatomo dimension to focus on (e.g., "LOGOS", "TECHNE").
-        instructions: Specific instructions on how to rewrite the text (e.g., "Add a paragraph explaining the biological process of cortisol to ground the PATHOS with LOGOS").
+        filepath: The absolute or Vault-relative path to the file (e.g., "03_voice/voice_123.json").
+        updated_content: The fully rewritten text that should replace the old text in the file.
     """
-    logger.info(f"Agent executing apply_dimension_tool on {filepath} for dimension {dimension_to_inject}")
+    logger.info(f"Agent executing save_document_tool on {filepath}")
     try:
         vault_base = "/vault"
-        # Sanitize and resolve path
         safe_path = filepath
         if safe_path.startswith("/vault/"):
             safe_path = safe_path.replace("/vault/", "", 1)
@@ -76,60 +74,25 @@ def apply_dimension_tool(filepath: str, dimension_to_inject: str, instructions: 
             
         # Read the artifact
         content = atomic_fs.read_file(safe_path)
-        
-        # Extract text if it's JSON
         is_json = safe_path.endswith(".json")
-        raw_text = content
-        metadata_dict = {}
         
         if is_json:
             metadata_dict = json.loads(content)
-            # Find the text payload (either Slides or Raw Text)
             if "raw_text" in metadata_dict:
-                raw_text = metadata_dict["raw_text"]
-            elif "slides" in metadata_dict:
-                # Naive join for simplicity
-                raw_text = "\n\n".join([s.get("content", "") for s in metadata_dict["slides"]])
+                metadata_dict["raw_text"] = updated_content
             elif "raw_markdown" in metadata_dict:
-                raw_text = metadata_dict["raw_markdown"]
+                metadata_dict["raw_markdown"] = updated_content
             else:
                 return "Error: JSON format not supported for direct rewriting."
-
-        # Use Gemini to perform the actual rewrite
-        from core.authenticator import authenticator
-        from google.genai import types
-        
-        prompt = (
-            f"Você é um Ghostwriter especialista na Teoria Heptatomo. "
-            f"Reescreva o texto abaixo para injetar e fortalecer a dimensão '{dimension_to_inject.upper()}'.\n"
-            f"Instruções Específicas: {instructions}\n\n"
-            f"Integre a nova dimensão de forma orgânica. Não mude o idioma original.\n\n"
-            f"TEXTO ORIGINAL:\n{raw_text}"
-        )
-        
-        response = authenticator.client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=[prompt]
-        )
-        
-        rewritten_text = response.text
-        
-        # Save it back
-        if is_json:
-            # Update the appropriate field
-            if "raw_text" in metadata_dict:
-                metadata_dict["raw_text"] = rewritten_text
-            elif "raw_markdown" in metadata_dict:
-                metadata_dict["raw_markdown"] = rewritten_text
-            # Increment the version hash to respect atomic tracking
+                
             atomic_fs.write_file(safe_path, json.dumps(metadata_dict, indent=2))
         else:
-            atomic_fs.write_file(safe_path, rewritten_text)
+            atomic_fs.write_file(safe_path, updated_content)
             
-        return f"Success. Document {filepath} has been rewritten and saved atomically with enhanced {dimension_to_inject.upper()}."
+        return f"Success. Document {filepath} has been successfully updated and saved."
 
     except FileNotFoundError:
         return f"Error: File {filepath} not found in the Vault."
     except Exception as e:
-        logger.error(f"Apply dimension tool failed: {e}", exc_info=True)
-        return f"Error applying dimension override: {str(e)}"
+        logger.error(f"Save document tool failed: {e}", exc_info=True)
+        return f"Error applying override: {str(e)}"

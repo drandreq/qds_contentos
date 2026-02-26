@@ -6,7 +6,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from core.agent_tools import search_knowledge_tool, apply_dimension_tool
+from core.agent_tools import search_knowledge_tool, save_document_tool
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +22,12 @@ As 7 Dimensões do Conhecimento são:
 7. PATHOS (Emoção/Dor)
 
 Você tem ferramentas ('tools') para ajudar o usuário a balancear seus textos.
-Sempre que o usuário pedir para reescrever, analisar e aplicar dimensões:
-1. Se precisar de contexto adicional sobre um tema, use a ferramenta 'search_knowledge_tool' para buscar na memória do Vault.
-2. Identifique qual dimensão está faltando com base no pedido do usuário.
-3. Use a ferramenta 'apply_dimension_tool' para reescrever e salvar o arquivo no Vault, injetando a dimensão necessária.
-4. Após usar a ferramenta para salvar, responda ao usuário resumindo o que você fez.
+Sempre que o usuário pedir para reescrever, analisar ou aplicar dimensões:
+1. Se precisar de fatos adicionais, use a ferramenta 'search_knowledge_tool' para buscar na memória do Vault.
+2. Identifique qual dimensão está faltando ou como o texto deve ser modificado com base no pedido do usuário.
+3. Você mesmo deve REESCREVER e melhorar o texto para injetar as dimensões solicitadas.
+4. Após gerar o texto final, OBJETIVAMENTE chame a ferramenta 'save_document_tool' enviando TODO O NOVO TEXTO no parâmetro 'updated_content'.
+5. Não responda com o texto longo no chat, apenas informe que salvou com sucesso.
 """
 
 # 1. Define the State
@@ -49,7 +50,7 @@ def agent_reasoner(state: ContentOSState):
     )
     
     # Bind our hands (tools)
-    tools = [search_knowledge_tool, apply_dimension_tool]
+    tools = [search_knowledge_tool, save_document_tool]
     llm_with_tools = llm.bind_tools(tools)
     
     # Prepend the system prompt if it's the first execution
@@ -64,7 +65,7 @@ def agent_reasoner(state: ContentOSState):
     return {"messages": [response]}
 
 # Build the prebuilt ToolNode
-tools = [search_knowledge_tool, apply_dimension_tool]
+tools = [search_knowledge_tool, save_document_tool]
 tool_node = ToolNode(tools)
 
 # 3. Build the Graph
