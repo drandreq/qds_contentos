@@ -267,7 +267,7 @@ class TelegramHandler:
 
                 # Send the result back
                 from telegram.constants import ParseMode
-                reply_text = f"🎙️ <b>Transcrição:</b>\n\n{transcription}\n\n<i>Classifique este áudio para o Vault:</i>"
+                reply_text = f"🎙️ **Transcrição:**\n\n{transcription}\n\n*Classifique este áudio para o Vault:*"
                 formatted_html = await safe_markdown_to_html(reply_text)
                 await bot.send_message(
                     chat_id=chat_id, 
@@ -332,9 +332,10 @@ class TelegramHandler:
             # Edit the message to visually lock in the classification
             from telegram.constants import ParseMode
             original_text = query.message.text
-            new_text = f"{original_text}\n\n✅ <b>Classificado no Tensor como:</b> {dimension.upper()}"
+            new_text = f"{original_text}\n\n✅ **Classificado no Tensor como:** {dimension.upper()}"
+            formatted_html = await safe_markdown_to_html(new_text)
             await query.edit_message_text(
-                text=new_text,
+                text=formatted_html,
                 parse_mode=ParseMode.HTML
             )
         except Exception as e:

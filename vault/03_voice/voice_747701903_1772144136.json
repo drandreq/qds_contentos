@@ -1,0 +1,15 @@
+{
+  "type": "transcription",
+  "user_id": 747701903,
+  "raw_text": "Opa, s\u00f3 queria verificar se t\u00e1 tudo funcionando corretamente.",
+  "dimensional_tensor": {
+    "logos": 1.0,
+    "techne": 0.0,
+    "ethos": 0.0,
+    "bios": 0.0,
+    "strategos": 0.0,
+    "polis": 0.0,
+    "pathos": 0.0
+  },
+  "compiled_at": "2026-02-26T22:15:36.092757"
+}

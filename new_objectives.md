@@ -83,3 +83,11 @@ $$T_{total} = \left( \frac{WordCount}{WPM} \times 60 \right) + (EllipsisCount \t
 ### SPRINT 17: STRATEGIC 7D DASHBOARD
 - High-level Kanban and **Dimensional Heatmap** for the 120-day plan.
 - **FVT:** Identify gaps in the **ETHOS** or **PATHOS** pillars over the last 30 days.
+
+### SPRINT 18: PROACTIVE EXECUTION & NOTIFICATIONS
+* **Goal:** Turn "contentos" into an active execution partner.
+- **Implementation:**
+  - Integrate `APScheduler` into the FastAPI backend-engine.
+  - Create the `NotificationOrchestrator` to monitor scheduled dates in JSON metadata.
+  - Implement a "Push logic" in the Telegram Bot to send proactive alerts with assets.
+- **FVT:** Schedule a post for 5 minutes in the future and verify if the Bot sends the reminder with the correct files.
