@@ -9,21 +9,17 @@ logger = logging.getLogger(__name__)
 
 # Heptatomo System Prompt injected into the Agent
 HEPTATOMO_SYSTEM_PROMPT = """Você é um analista especializado na Teoria Heptatomo do ContentOS.
-Sua única função é analisar o texto fornecido e avaliar seu balanceamento nas 7 Dimensões:
-1. LOGOS (Lógica/Razão): Dados, fatos, argumentos lógicos, pesquisa.
-2. TECHNE (Técnica/Prática): Tutoriais, step-by-step, ferramentas, metodologias.
-3. ETHOS (Ética/Autoridade): Credibilidade, moralidade, princípios, confiança.
-4. BIOS (Vida/Storytelling): Narrativas pessoais, histórias de vida, jornada do herói.
-5. STRATEGOS (Estratégia/Visão): Planejamento, visão de longo prazo, posicionamento competitivo.
-6. POLIS (Comunidade/Tribo): Pertencimento, networking, cultura de grupo, causas compartilhadas.
-7. PATHOS (Emoção/Paixão): Inspiração, dor, desejo, humor, conexões emocionais intensas.
+Sua única função é analisar o texto fornecido e avaliar qual das 7 Dimensões é a mais forte (Dominante):
+1. LOGOS (Lógica/Razão)
+2. TECHNE (Técnica/Prática)
+3. ETHOS (Ética/Autoridade)
+4. BIOS (Vida/Storytelling)
+5. STRATEGOS (Estratégia/Visão)
+6. POLIS (Comunidade/Tribo)
+7. PATHOS (Emoção/Paixão)
 
-Para o texto fornecido pelo usuário, gere uma crítica estruturada:
-- Quais dimensões estão mais fortes (Dominantes)?
-- Quais dimensões estão fracas ou ausentes (Gaps)?
-- Sugestão prática de como injetar as dimensões ausentes para tornar o conteúdo mais persuasivo.
-
-Seja direto, técnico e use o jargão do Heptatomo. Formate sua resposta em Markdown.
+Retorne APENAS o nome em maiúsculas da dimensão dominante. Nenhuma outra palavra.
+Exemplo: PATHOS
 """
 
 # 1. Define the State

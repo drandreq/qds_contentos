@@ -201,3 +201,66 @@ async def export_pptx(request: ExportRequest):
     except Exception as e:
         logger.error(f"Generate PPTX failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+class AgentAnalyzeRequest(BaseModel):
+    filepath: str # Path to the JSON file in the vault
+
+@contentos_application.post("/v1/agent/analyze")
+async def analyze_content_agent(request: AgentAnalyzeRequest):
+    """
+    Sprint 11: Agentic Connectome
+    Invokes the Heptatomo LangGraph Agent on a specific vault file.
+    """
+    try:
+        from core.agent_graph import contentos_agent
+        from core.models import LessonMetadata, TranscriptionMetadata
+        from langchain_core.messages import HumanMessage
+        import json
+        
+        vault_base = "/vault"
+        full_path = os.path.abspath(os.path.join(vault_base, request.filepath))
+        
+        if not full_path.startswith(vault_base) or not full_path.endswith(".json"):
+            raise HTTPException(status_code=400, detail="Invalid JSON filepath.")
+            
+        with open(full_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        # Extract raw text depending on model type
+        raw_text = ""
+        if "slides" in data:
+            metadata = LessonMetadata(**data)
+            raw_text = metadata.raw_markdown or ""
+        elif "raw_text" in data:
+            meta = TranscriptionMetadata(**data)
+            raw_text = meta.raw_text
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported JSON type. Expected LessonMetadata or TranscriptionMetadata.")
+            
+        if not raw_text:
+            raise HTTPException(status_code=400, detail="No raw text found in the payload to analyze.")
+            
+        logger.info(f"Invoking Agent for: {request.filepath}")
+        
+        # Build initial state and run graph
+        initial_state = {
+            "messages": [HumanMessage(content=raw_text)],
+            "document_id": request.filepath
+        }
+        
+        # Async invoke on LangGraph
+        result = await contentos_agent.ainvoke(initial_state)
+        
+        # The last message is the agent's critique
+        critique = result["messages"][-1].content
+        
+        return {
+            "source_file": request.filepath,
+            "heptatomo_critique": critique
+        }
+        
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="File not found.")
+    except Exception as e:
+        logger.error(f"Agent analysis failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))

@@ -91,3 +91,56 @@ $$T_{total} = \left( \frac{WordCount}{WPM} \times 60 \right) + (EllipsisCount \t
   - Create the `NotificationOrchestrator` to monitor scheduled dates in JSON metadata.
   - Implement a "Push logic" in the Telegram Bot to send proactive alerts with assets.
 - **FVT:** Schedule a post for 5 minutes in the future and verify if the Bot sends the reminder with the correct files.
+
+
+# CONTENTOS: THE GLOBAL CONNECTOME (SPRINTS 21-25)
+
+## THE EVOLUTIONARY DIRECTIVE
+The system must transition from a "Content Engine" to a "Strategic Intelligence Hub," capable of external sensing and audience simulation.
+
+---
+
+### SPRINT 21: THE EXTERNAL SENSOR (POLIS & BIOS SCAN)
+* **Goal:** Feed the Connectome with real-world triggers.
+- **Implementation:**
+  - Implement an **RSS/Web Scraper** service in the backend-engine.
+  - Monitor targeted sources (e.g., PubMed, TechCrunch, Brazilian Legislative Feeds).
+  - AI-Filtering: Only notify André if the external news has a >0.7 correlation with his existing Heptatomo weights.
+- **FVT:** Successfully receive a Telegram alert about a new tech-health regulation with a suggested "Seed" draft.
+
+### SPRINT 22: THE AUDIENCE SIMULATOR (STRESS-TESTING PATHOS)
+* **Goal:** Validate content reception before public release.
+- **Implementation:**
+  - Create the `AudienceSimulator` agent in LangGraph.
+  - Define 3 Persona Blueprints: "The Skeptical MD," "The Junior Dev," and "The Senior Health Executive."
+  - The Agent provides a "Critical Feedback Report" focusing on the gaps in the 7 dimensions.
+- **FVT:** Run a draft through the simulator and receive 3 distinct, high-quality critiques.
+
+### SPRINT 23: 3D CONNECTOME VISUALIZER (KNOWLEDGE GRAPH)
+* **Goal:** Visualize the structure and clusters of your polymath brain.
+- **Implementation:**
+  - Use `NetworkX` to build a graph of all `.json` files and their `synaptic_links`.
+  - Integrate a 3D Graph Visualizer in the Streamlit UI.
+  - Color-code nodes based on the dominant Heptatomo dimension.
+- **FVT:** Open the "Brain Map" in Streamlit and interactively explore the connections between Lessons and Social Posts.
+
+### SPRINT 24: GLOBAL REACH (MULTILINGUAL ADAPTATION)
+* **Goal:** Expand André's influence to international audiences.
+- **Implementation:**
+  - Implement a `CulturalAdapter` tool: translates content while adjusting the "Heptatomo Tone" to different cultures (e.g., more LOGOS for US audiences, more PATHOS for LATAM).
+  - High-fidelity translation using Gemini 2.0 Pro.
+- **FVT:** Generate an English version of a Brazilian POLIS lesson, adjusted for global healthcare standards.
+
+### SPRINT 25: THE HEPTATOMO ORACLE (AUTONOMOUS PLANNING)
+* **Goal:** The system suggests the next 30 days of content based on gaps and trends.
+- **Implementation:**
+  - `StrategyPlannerAgent`: Analyzes the Connectome Map + External Trends + Gap Analysis.
+  - Generates a "Strategic Proposal": "André, there is a trend in TECHNE-BIOS; you have the foundation in Lesson 05. Suggesting a 3-part series."
+- **FVT:** Receive a full 30-day content calendar proposal aligned with the 120-day goal and current trends.
+
+---
+
+## FINAL ARCHITECTURAL CONSTRAINTS
+- **Scalability:** Use `Celery` or `Redis` for high-frequency scraping and 3D graph rendering.
+- **Sovereignty:** All external insights must be stored as "External Seeds" with source URLs to maintain evidence-based rigor.
+- **Rigor:** Maintain 2-space indentation and verbose variable naming throughout the entire expansion.
