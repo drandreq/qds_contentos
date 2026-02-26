@@ -8,6 +8,11 @@
 gcloud_config/
 .history/
 
+# Cached Media & Output
+vault/.cache/
+app/vault/.cache/
+*.ogg
+
 # Python Environment
 __pycache__/
 *.py[cod]
