@@ -2,6 +2,8 @@ import os
 import logging
 import asyncio
 from datetime import datetime
+import re
+import html
 from typing import List
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ChatAction
@@ -11,6 +13,54 @@ from core.authenticator import authenticator
 from google.genai import types
 
 logger = logging.getLogger(__name__)
+
+# --- REGEX PATTERNS (Pre-compiled for performance) ---
+# Blocks and Structures
+RE_BLOCK_CODE = re.compile(r'```(?:[a-zA-Z]+)?\n?(.*?)```', flags=re.DOTALL)
+RE_BLOCKQUOTE = re.compile(r'(^|\n)>\s*(.*)')
+RE_HEADERS = re.compile(r'(^|\n)#{1,6}\s+(.*)')
+RE_LIST_ITEMS = re.compile(r'(^|\n)\s*[-*+]\s+(.*)')
+
+# Inline Formatting with Boundary Protection (Protects commands like /who_am_i)
+RE_BOLD_ITALIC = re.compile(r'(^|(?<=\s))(\*\*\*|___)(?!\s)(.*?)(?<!\s)\2($|(?=\s|[.,!?;:]))')
+RE_BOLD = re.compile(r'(^|(?<=\s))(\*\*|__)(?!\s)(.*?)(?<!\s)\2($|(?=\s|[.,!?;:]))')
+RE_ITALIC_STAR = re.compile(r'(^|(?<=\s))(?<!\*)\*(?!\*)(.*?)(?<!\*)\*($|(?=\s|[.,!?;:]))')
+RE_ITALIC_UNDERSCORE = re.compile(r'(^|(?<=\s))(?<!_)_(?!_)(.*?)(?<!_)_($|(?=\s|[.,!?;:]))')
+RE_INLINE_CODE = re.compile(r'`([^`]+)`')
+RE_LINKS = re.compile(r'\[(.*?)\]\((.*?)\)')
+RE_STRIKE = re.compile(r'(^|(?<=\s))~~(?!\s)(.*?)(?<!\s)~~($|(?=\s|[.,!?;:]))')
+
+def markdown_to_telegram_html_sync(text: str) -> str:
+    """Core formatting engine. Escapes HTML and applies Markdown rules."""
+    text = html.escape(text)
+    text = RE_BLOCK_CODE.sub(r'<pre><code>\1</code></pre>', text)
+    text = RE_BLOCKQUOTE.sub(r'\1<blockquote>\2</blockquote>', text)
+    text = RE_HEADERS.sub(r'\1<b>\2</b>', text)
+    text = RE_LIST_ITEMS.sub(r'\1 • \2', text)
+    text = RE_BOLD_ITALIC.sub(r'\1<b><i>\3</i></b>', text)
+    text = RE_BOLD.sub(r'\1<b>\3</b>', text)
+    text = RE_ITALIC_STAR.sub(r'\1<i>\2</i>', text)
+    text = RE_ITALIC_UNDERSCORE.sub(r'\1<i>\2</i>', text)
+    text = RE_INLINE_CODE.sub(r'<code>\1</code>', text)
+    text = RE_LINKS.sub(r'<a href="\2">\1</a>', text)
+    text = RE_STRIKE.sub(r'\1<s>\2</s>', text)
+    return text.strip()
+
+async def safe_markdown_to_html(text: str, timeout: float = 2.0) -> str:
+    """Asynchronous wrapper with strict timeout."""
+    if not text:
+        return ""
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(markdown_to_telegram_html_sync, text),
+            timeout = timeout
+        )
+    except asyncio.TimeoutError:
+        logger.error(f"PARSER TIMEOUT: Markdown processing exceeded {timeout}s.")
+        return f"⚠️ <b>Parser Warning:</b> Message too complex for formatting.\n\n{html.escape(text)}"
+    except Exception as e:
+        logger.error(f"PARSER ERROR: {str(e)}", exc_info=True)
+        return html.escape(text)
 
 class TelegramHandler:
     def __init__(self):
@@ -217,12 +267,13 @@ class TelegramHandler:
 
                 # Send the result back
                 from telegram.constants import ParseMode
-                reply_text = f"🎙️ **Transcrição:**\n\n{transcription}\n\n*Classifique este áudio para o Vault:*"
+                reply_text = f"🎙️ <b>Transcrição:</b>\n\n{transcription}\n\n<i>Classifique este áudio para o Vault:</i>"
+                formatted_html = safe_markdown_to_html(reply_text)
                 await bot.send_message(
                     chat_id=chat_id, 
-                    text=reply_text, 
+                    text=formatted_html, 
                     reply_markup=reply_markup, 
-                    parse_mode=ParseMode.MARKDOWN
+                    parse_mode=ParseMode.HTML
                 )
                 logger.info(f"Successfully transcribed and mapped {filepath} to {json_filename}.")
                 
@@ -281,9 +332,10 @@ class TelegramHandler:
             # Edit the message to visually lock in the classification
             from telegram.constants import ParseMode
             original_text = query.message.text
+            new_text = f"{original_text}\n\n✅ <b>Classificado no Tensor como:</b> {dimension.upper()}"
             await query.edit_message_text(
-                text=f"{original_text}\n\n✅ **Classificado no Tensor como:** {dimension.upper()}",
-                parse_mode=ParseMode.MARKDOWN
+                text=new_text,
+                parse_mode=ParseMode.HTML
             )
         except Exception as e:
             logger.error(f"Dimensional Triage Error: {e}")
