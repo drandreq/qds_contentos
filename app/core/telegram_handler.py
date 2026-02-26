@@ -40,6 +40,7 @@ class TelegramHandler:
         # Add handlers
         self.application.add_handler(CommandHandler("start", self.start_command))
         self.application.add_handler(CommandHandler("who_am_i", self.who_am_i_command))
+        self.application.add_handler(CommandHandler("test_format", self.test_format_command))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.text_message_handler))
         self.application.add_handler(MessageHandler(filters.VOICE, self.voice_message_handler))
 
@@ -194,11 +195,54 @@ class TelegramHandler:
             finally:
                 self._voice_queue.task_done()
 
+    async def test_format_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """
+        Test command to verify Telegram Markdown rendering.
+        Usage: /test_format <text>
+        """
+        if not await self.verify_authorization(update):
+            return
+
+        if not context.args:
+            await update.message.reply_text("Uso: /test_format <texto>")
+            return
+
+        text = " ".join(context.args)
+        
+        # Using standard Markdown parser for Telegram (Markdown)
+        msg = (
+            f"*TITLE: {text.upper()}*\n\n"
+            f"*Bold*: *{text}*\n"
+            f"_Italic_: _{text}_\n"
+            f"`Code`: `{text}`\n\n"
+            f"*List of Characters*:\n"
+        )
+        
+        for char in text[:5]:
+            msg += f"- {char}\n"
+            
+        try:
+            await update.message.reply_markdown(msg)
+        except Exception as e:
+            logger.error(f"Test format failed: {e}")
+            await update.message.reply_text(f"❌ Formatting failed: {e}\n\nRaw text:\n{msg}")
+
     async def start_ptb(self):
         if not self.application:
             return
             
         await self.application.initialize()
+        
+        # Register Bot Commands to appear in the Telegram UI Menu
+        try:
+            await self.application.bot.set_my_commands([
+                ("start", "Inicia o bot do ContentOS"),
+                ("who_am_i", "Retorna seu ID de usuário para liberação"),
+                ("test_format", "Testa a formatação markdown nativa")
+            ])
+            logger.info("Successfully registered bot commands in Telegram.")
+        except Exception as e:
+            logger.warning(f"Failed to set bot commands: {e}")
         
         # Start the background processor
         self._queue_worker_task = asyncio.create_task(self._process_voice_queue())
