@@ -3,9 +3,9 @@ import logging
 import asyncio
 from datetime import datetime
 from typing import List
-from telegram import Update
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ChatAction
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 from fastapi import Request
 from core.authenticator import authenticator
 from google.genai import types
@@ -41,6 +41,7 @@ class TelegramHandler:
         self.application.add_handler(CommandHandler("start", self.start_command))
         self.application.add_handler(CommandHandler("who_am_i", self.who_am_i_command))
         self.application.add_handler(CommandHandler("test_format", self.test_format_command))
+        self.application.add_handler(CallbackQueryHandler(self.dimensional_triage_callback))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.text_message_handler))
         self.application.add_handler(MessageHandler(filters.VOICE, self.voice_message_handler))
 
@@ -110,8 +111,8 @@ class TelegramHandler:
         await update.message.reply_text("⏳ Processando seu áudio...")
         
         try:
-            # 1. Ensure cache directory exists
-            cache_dir = os.path.join(os.getcwd(), "vault", ".cache", "voice_uploads")
+            # 1. Ensure cache directory exists in the vault root
+            cache_dir = "/vault/.cache/voice_uploads"
             os.makedirs(cache_dir, exist_ok=True)
             
             # 2. Get file from Telegram
@@ -187,10 +188,42 @@ class TelegramHandler:
                 
                 transcription = response.text
                 
+                # Save the base JSON transcription metadata for triage
+                import time
+                from core.models import TranscriptionMetadata
+                from core.atomic_filesystem import atomic_fs
+
+                os.makedirs("/vault/03_voice", exist_ok=True)
+                json_filename = f"voice_{chat_id}_{int(time.time())}.json"
+                
+                meta = TranscriptionMetadata(
+                    user_id=chat_id,
+                    raw_text=transcription
+                )
+                
+                atomic_fs.write_file(f"03_voice/{json_filename}", meta.model_dump_json(indent=2))
+
+                # Construct 7D inline keyboard markdown
+                keyboard = [
+                    [InlineKeyboardButton("🧠 LOGOS", callback_data=f"dim:logos:{json_filename}"),
+                     InlineKeyboardButton("🛠️ TECHNE", callback_data=f"dim:techne:{json_filename}")],
+                    [InlineKeyboardButton("⚖️ ETHOS", callback_data=f"dim:ethos:{json_filename}"),
+                     InlineKeyboardButton("🧬 BIOS", callback_data=f"dim:bios:{json_filename}")],
+                    [InlineKeyboardButton("📈 STRATEGOS", callback_data=f"dim:strategos:{json_filename}"),
+                     InlineKeyboardButton("🏛️ POLIS", callback_data=f"dim:polis:{json_filename}")],
+                    [InlineKeyboardButton("❤️ PATHOS", callback_data=f"dim:pathos:{json_filename}")]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
                 # Send the result back
-                reply_text = f"🎙️ **Transcrição:**\n\n{transcription}"
-                await bot.send_message(chat_id=chat_id, text=reply_text, parse_mode='Markdown')
-                logger.info(f"Successfully transcribed {filepath}.")
+                reply_text = f"🎙️ **Transcrição:**\n\n{transcription}\n\n*Classifique este áudio para o Vault:*"
+                await bot.send_message(
+                    chat_id=chat_id, 
+                    text=reply_text, 
+                    reply_markup=reply_markup, 
+                    parse_mode='Markdown'
+                )
+                logger.info(f"Successfully transcribed and mapped {filepath} to {json_filename}.")
                 
             except asyncio.CancelledError:
                 logger.info("Voice processing worker cancelled.")
@@ -211,6 +244,47 @@ class TelegramHandler:
                         logger.warning(f"Failed to delete temporary audio {filepath}: {e}")
 
                 self._voice_queue.task_done()
+
+    async def dimensional_triage_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """
+        Sprint 10: Catch the inline keyboard presses for Voice triage classification.
+        Saves the dominant 1.0 weight into the corresponding HeptatomoTensor JSON artifact.
+        """
+        query = update.callback_query
+        await query.answer() # Acknowledge the callback internally
+        
+        data = query.data
+        if not data.startswith("dim:"):
+            return
+            
+        _, dimension, filename = data.split(":", 2)
+        
+        # Load JSON from vault
+        try:
+            import json
+            from core.atomic_filesystem import atomic_fs
+            from core.models import HeptatomoTensor
+            
+            content = atomic_fs.read_file(f"03_voice/{filename}")
+            meta_dict = json.loads(content)
+                
+            # Assign binary triage weight
+            tensor = HeptatomoTensor()
+            setattr(tensor, dimension, 1.0)
+            
+            meta_dict["dimensional_tensor"] = tensor.model_dump()
+            
+            # Save atomically
+            atomic_fs.write_file(f"03_voice/{filename}", json.dumps(meta_dict, indent=2))
+            
+            # Edit the message to visually lock in the classification
+            original_text = query.message.text
+            await query.edit_message_text(
+                text=f"{original_text}\n\n✅ **Classificado no Tensor como:** {dimension.upper()}"
+            )
+        except Exception as e:
+            logger.error(f"Dimensional Triage Error: {e}")
+            await query.edit_message_text(text="❌ Erro: Arquivo de transcrição não encontrado ou falha na leitura no Vault.")
 
     async def test_format_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """

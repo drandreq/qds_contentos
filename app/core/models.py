@@ -37,6 +37,17 @@ class LessonMetadata(BaseModel):
     slides: List[SlideDirective] = Field(default_factory=list, description="All slide directives found in the text.")
     compiled_at: datetime = Field(default_factory=datetime.utcnow, description="Timestamp of compilation.")
 
+class TranscriptionMetadata(BaseModel):
+    """
+    Sprint 10: Metadata bridging raw Telegram Voice Notes into the Vault 
+    for dimensional triage and later LangGraph processing.
+    """
+    type: str = Field(default="transcription", description="Discriminator for the content type.")
+    user_id: int = Field(description="The Telegram User ID who sent the voice note.")
+    raw_text: str = Field(description="The highly accurate Gemini transcription text.")
+    dimensional_tensor: Optional[HeptatomoTensor] = Field(default=None, description="The assigned 7D Connectome weight representation.")
+    compiled_at: datetime = Field(default_factory=datetime.utcnow, description="Timestamp of transcription.")
+
 class SocialPostMetadata(BaseModel):
     """
     Represents the data model for a social media post (e.g., Instagram).
