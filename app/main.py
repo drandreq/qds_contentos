@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Sprint 2: Initialize Google AI Authenticator
-    logger.info("Starting up Content-OS. Initializing Google AI SDK...")
+    logger.info("Starting up ContentOS. Initializing Google AI SDK...")
     try:
         authenticator.initialize()
         logger.info(f"Google AI SDK initialized using {authenticator.auth_layer_used} layer.")
@@ -20,25 +20,25 @@ async def lifespan(app: FastAPI):
     yield
     
     # Clean up (if needed)
-    logger.info("Shutting down Content-OS.")
+    logger.info("Shutting down ContentOS.")
 
-content_os_application = FastAPI(
-    title="Content-OS",
+contentos_application = FastAPI(
+    title="ContentOS",
     description="High-integrity production pipeline for medical and technical content.",
     version="1.0.0",
     lifespan=lifespan
 )
 
-@content_os_application.get("/health")
+@contentos_application.get("/health")
 async def health_check():
     """
-    Returns the operational status of the Content-OS backend,
+    Returns the operational status of the ContentOS backend,
     including the active authentication layer for Google GenAI.
     """
     auth_status = authenticator.get_status()
     
     return {
         "status": "operational",
-        "message": "Content-OS backend standing by.",
+        "message": "ContentOS backend standing by.",
         "authenticator": auth_status
     }

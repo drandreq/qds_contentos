@@ -5,12 +5,12 @@
 - [ ] Write `docker/Dockerfile.backend`
 - [ ] Write `docker/Dockerfile.frontend`
 - [ ] Write `app/requirements.txt`
-- [ ] Fix [manage.sh](file:///c:/NEUER_PROJECTER/qds_content_OS/manage.sh) (bash `=` bug, add `rebuild`/`status` commands)
-- [ ] Fix [docker-compose.yml](file:///c:/NEUER_PROJECTER/qds_content_OS/docker-compose.yml) (remove `version`, add healthchecks, network)
+- [ ] Fix [manage.sh](file:///c:/NEUER_PROJECTER/qds_contentos/manage.sh) (bash `=` bug, add `rebuild`/`status` commands)
+- [ ] Fix [docker-compose.yml](file:///c:/NEUER_PROJECTER/qds_contentos/docker-compose.yml) (remove `version`, add healthchecks, network)
 - [ ] Create stub `app/main.py` (skeleton health endpoint)
 - [ ] Create stub `app/ui.py` (Streamlit hello page)
 - [ ] Create `app/core/__init__.py`
-- [ ] Populate [.env](file:///c:/NEUER_PROJECTER/qds_content_OS/.env) template
+- [ ] Populate [.env](file:///c:/NEUER_PROJECTER/qds_contentos/.env) template
 - [ ] Verify: `docker compose build` exits 0, `curl /health` returns OK
 
 ## Sprint 2: FastAPI Core (Auth)

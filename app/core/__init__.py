@@ -1,3 +1,3 @@
 # 
-# Content-OS - Core Logic Package
+# ContentOS - Core Logic Package
 # 

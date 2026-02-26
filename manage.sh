@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# manage.sh - Content-OS Administrative Interface
+# manage.sh - ContentOS Administrative Interface
 # Physician-Programmer Standard: Verbose and Clear
 
 path_to_env_file="./.env"
@@ -17,7 +17,7 @@ function check_environment_file() {
     echo "[!] Warning: .env file not found. Creating a template..."
     echo "GOOGLE_API_KEY=your_google_api_key_here" > "$path_to_env_file"
     echo "TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here" >> "$path_to_env_file"
-    echo "CONTENT_OS_WORDS_PER_MINUTE=150" >> "$path_to_env_file"
+    echo "CONTENTOS_WORDS_PER_MINUTE=150" >> "$path_to_env_file"
   fi
 }
 
@@ -25,7 +25,7 @@ case "$1" in
   "up")
     check_environment_file
     $docker_compose_command up --build -d
-    echo "[+] Content-OS is running in background."
+    echo "[+] ContentOS is running in background."
     ;;
   "down")
     $docker_compose_command down
@@ -34,7 +34,7 @@ case "$1" in
   "rebuild")
     check_environment_file
     $docker_compose_command up --build --force-recreate -d
-    echo "[+] Content-OS rebuilt and running."
+    echo "[+] ContentOS rebuilt and running."
     ;;
   "status")
     $docker_compose_command ps

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class MPDialectParser:
     """
-    Compiler for the Content-OS MP-Dialect.
+    Compiler for the ContentOS MP-Dialect.
     Extracts YAML metadata, parses !slide{} DSL directives, counts ellipsis pauses,
     and returns a structured Pydantic model (which becomes the .json sovereign).
     """
@@ -26,10 +26,10 @@ class MPDialectParser:
     def __init__(self):
         # Allow Words-Per-Minute to be configurable via environment
         try:
-            self.wpm = int(os.getenv("CONTENT_OS_WORDS_PER_MINUTE", "150"))
+            self.wpm = int(os.getenv("CONTENTOS_WORDS_PER_MINUTE", "150"))
         except ValueError:
             self.wpm = 150
-            logger.warning("Invalid CONTENT_OS_WORDS_PER_MINUTE. Falling back to 150.")
+            logger.warning("Invalid CONTENTOS_WORDS_PER_MINUTE. Falling back to 150.")
 
     def parse_markdown_file(self, md_path: str) -> LessonMetadata:
         """
