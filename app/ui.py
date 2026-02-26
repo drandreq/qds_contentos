@@ -12,6 +12,4 @@ st.write("A interface unificada para gerenciar The Sovereign Vault (MRWD) e agen
 
 st.info("👈 Use a barra lateral para navegar entre as ferramentas e páginas disponíveis.")
 
-st.markdown("**(Em breve na Sprint 7 completa: Editor de Timeline, Preview de Slides e Commit Atômico)**")
-
-# Sprint 7 will implement the full timeline reader and CSS slide previewer here.
+st.success("O Motor do ContentOS está online e operante.")

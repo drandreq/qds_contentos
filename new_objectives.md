@@ -43,7 +43,9 @@ $$T_{total} = \left( \frac{WordCount}{WPM} \times 60 \right) + (EllipsisCount \t
 
 ---
 
-## 6. PROJECT ROADMAP (SPRINTS 9-17)
+## 6. PROJECT ROADMAP (SPRINTS 7-17)
+7. **Sprint 7 (Streamlit Studio):** Multi-page UI, JSON timeline reader, CSS slide preview
+8. **Sprint 8 (Asset Factory):** Pillow PNG renderer, internal PPTX generation logic.
 
 ### SPRINT 9: DIMENSIONAL MEMORY (CHROMADB)
 - Implement **ChromaDB** to index the vault using the `HeptatomoTensor`.
