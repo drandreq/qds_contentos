@@ -1,7 +1,11 @@
 import logging
+import os
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from core.authenticator import authenticator
+from core.mp_dialect_parser import compiler
+from core.atomic_filesystem import atomic_fs
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,3 +46,53 @@ async def health_check():
         "message": "ContentOS backend standing by.",
         "authenticator": auth_status
     }
+
+class CompileRequest(BaseModel):
+    filepath: str
+
+@contentos_application.post("/v1/compile")
+async def compile_markdown(request: CompileRequest):
+    """
+    Sprint 4: Atomic Versioning & Compilation
+    Compiles a Markdown file into a JSON Sovereign Pair.
+    Saves the JSON back to the vault atomically.
+    """
+    try:
+        # Resolve path
+        vault_base = "/vault"
+        # Prevent traversal
+        full_path = os.path.abspath(os.path.join(vault_base, request.filepath))
+        if not full_path.startswith(vault_base):
+            raise HTTPException(status_code=400, detail="Invalid filepath: Cannot traverse outside /vault")
+            
+        logger.info(f"Received compile request for: {full_path}")
+        
+        # Compile via MPDialectParser (Sprint 3)
+        try:
+            metadata = compiler.parse_markdown_file(full_path)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail=f"File not found: {request.filepath}")
+            
+        # Sprint 4: Atomic Write
+        # Determine the JSON sovereign path
+        json_filename = os.path.splitext(request.filepath)[0] + ".json"
+        json_content = metadata.model_dump_json(indent=2)
+        
+        # Use AtomicFileSystem to securely write
+        written_path = atomic_fs.write_file(json_filename, json_content)
+        
+        # Conform to CompilationResult model defined in models.py
+        from core.models import CompilationResult
+        result = CompilationResult(
+            source_path=request.filepath,
+            metadata_path=json_filename,
+            metadata=metadata
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Compilation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

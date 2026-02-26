@@ -1,0 +1,21 @@
+{
+  "type": "lesson",
+  "title": "Introduction to Content-OS",
+  "module": "Architecture",
+  "word_count": 25,
+  "ellipsis_count": 2,
+  "estimated_duration_seconds": 14,
+  "slides": [
+    {
+      "layout": "Title Layout",
+      "content": "Content-OS: The Source of Truth",
+      "raw_json": "{ \"layout\": \"Title Layout\", \"content\": \"Content-OS: The Source of Truth\" }"
+    },
+    {
+      "layout": "Bullet Points",
+      "content": "- Markdown for humans\n- JSON for machines",
+      "raw_json": "{ \"layout\": \"Bullet Points\", \"content\": \"- Markdown for humans\\n- JSON for machines\" }"
+    }
+  ],
+  "compiled_at": "2026-02-26T12:00:06.025661"
+}
