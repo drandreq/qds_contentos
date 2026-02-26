@@ -8,7 +8,8 @@ def test_agent_analysis():
     target_json = "03_voice/voice_747701903_1772144416.json"
     
     payload = {
-        "filepath": target_json
+        "filepath": target_json,
+        "instruction": "Reescreva este trecho para injetar a dimensão LOGOS. Explique brevemente o funcionamento do cortisol canino."
     }
     
     print(f"\nSubmitting request to http://localhost:8000/v1/agent/analyze for {target_json}")

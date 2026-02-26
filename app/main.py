@@ -204,6 +204,7 @@ async def export_pptx(request: ExportRequest):
 
 class AgentAnalyzeRequest(BaseModel):
     filepath: str # Path to the JSON file in the vault
+    instruction: str = "Analise o balanceamento deste texto nas 7 dimensões do Heptatomo." # Default to critique mode
 
 @contentos_application.post("/v1/agent/analyze")
 async def analyze_content_agent(request: AgentAnalyzeRequest):
@@ -240,15 +241,18 @@ async def analyze_content_agent(request: AgentAnalyzeRequest):
         if not raw_text:
             raise HTTPException(status_code=400, detail="No raw text found in the payload to analyze.")
             
-        logger.info(f"Invoking Agent for: {request.filepath}")
+        logger.info(f"Invoking Agent for: {request.filepath} with instruction: {request.instruction}")
         
         # Build initial state and run graph
+        combined_prompt = f"Instrução do Usuário: {request.instruction}\n\nTexto Alvo do Vault ({request.filepath}):\n{raw_text}"
+        
         initial_state = {
-            "messages": [HumanMessage(content=raw_text)],
-            "document_id": request.filepath
+            "messages": [HumanMessage(content=combined_prompt)],
+            "document_id": request.filepath,
+            "instruction": request.instruction
         }
         
-        # Async invoke on LangGraph
+        # Async invoke on LangGraph (Now with Tool Support)
         result = await contentos_agent.ainvoke(initial_state)
         
         # The last message is the agent's critique

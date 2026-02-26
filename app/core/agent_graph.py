@@ -4,44 +4,53 @@ from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
+from langgraph.prebuilt import ToolNode, tools_condition
+
+from core.agent_tools import search_knowledge_tool, apply_dimension_tool
 
 logger = logging.getLogger(__name__)
 
 # Heptatomo System Prompt injected into the Agent
-HEPTATOMO_SYSTEM_PROMPT = """Você é um analista especializado na Teoria Heptatomo do ContentOS.
-Sua única função é analisar o texto fornecido e avaliar qual das 7 Dimensões é a mais forte (Dominante):
-1. LOGOS (Lógica/Razão)
-2. TECHNE (Técnica/Prática)
-3. ETHOS (Ética/Autoridade)
-4. BIOS (Vida/Storytelling)
+HEPTATOMO_SYSTEM_PROMPT = """Você é o Agente Polímata do ContentOS, mestre na Teoria Heptatomo.
+As 7 Dimensões do Conhecimento são:
+1. LOGOS (Fatos/Lógica)
+2. TECHNE (Prática/Tutoriais)
+3. ETHOS (Autoridade/Ética)
+4. BIOS (Storytelling/Vida)
 5. STRATEGOS (Estratégia/Visão)
 6. POLIS (Comunidade/Tribo)
-7. PATHOS (Emoção/Paixão)
+7. PATHOS (Emoção/Dor)
 
-Retorne APENAS o nome em maiúsculas da dimensão dominante. Nenhuma outra palavra.
-Exemplo: PATHOS
+Você tem ferramentas ('tools') para ajudar o usuário a balancear seus textos.
+Sempre que o usuário pedir para reescrever, analisar e aplicar dimensões:
+1. Se precisar de contexto adicional sobre um tema, use a ferramenta 'search_knowledge_tool' para buscar na memória do Vault.
+2. Identifique qual dimensão está faltando com base no pedido do usuário.
+3. Use a ferramenta 'apply_dimension_tool' para reescrever e salvar o arquivo no Vault, injetando a dimensão necessária.
+4. Após usar a ferramenta para salvar, responda ao usuário resumindo o que você fez.
 """
 
 # 1. Define the State
 class ContentOSState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     document_id: Optional[str]
+    instruction: Optional[str] # What the user wants the agent to do
 
 # 2. Define the Nodes
-def analyze_dimensions(state: ContentOSState):
+def agent_reasoner(state: ContentOSState):
     """
-    Node that processes the text through the Heptatomo lens.
+    Node that processes the text and decides to use tools or respond.
     """
-    logger.info("Agent Node: Analyzing Dimensions via Heptatomo Lens")
+    logger.info("Agent Node: Reasoning")
     
-    # We rely on the dual-initialized ADC credentials from the authenticator logic.
-    # The Langchain Google GenAI wrapper will pick up the ADC standard env vars.
-    # But just to be sure we are using the standard config:
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
         temperature=0.3,
-        max_output_tokens=1024
+        max_output_tokens=2048
     )
+    
+    # Bind our hands (tools)
+    tools = [search_knowledge_tool, apply_dimension_tool]
+    llm_with_tools = llm.bind_tools(tools)
     
     # Prepend the system prompt if it's the first execution
     messages = state["messages"]
@@ -49,20 +58,27 @@ def analyze_dimensions(state: ContentOSState):
         messages = [SystemMessage(content=HEPTATOMO_SYSTEM_PROMPT)] + list(messages)
     
     # Invoke the LLM
-    response = llm.invoke(messages)
+    response = llm_with_tools.invoke(messages)
     
     # State update
     return {"messages": [response]}
+
+# Build the prebuilt ToolNode
+tools = [search_knowledge_tool, apply_dimension_tool]
+tool_node = ToolNode(tools)
 
 # 3. Build the Graph
 workflow = StateGraph(ContentOSState)
 
 # Add nodes
-workflow.add_node("analyzer", analyze_dimensions)
+workflow.add_node("agent", agent_reasoner)
+workflow.add_node("tools", tool_node)
 
-# Add edges
-workflow.add_edge(START, "analyzer")
-workflow.add_edge("analyzer", END)
+# Add edges (The ReAct Loop)
+workflow.add_edge(START, "agent")
+# Conditional routing: If agent returned tool_calls, go to tools. Else go to END.
+workflow.add_conditional_edges("agent", tools_condition)
+workflow.add_edge("tools", "agent")
 
 # Compile the graph
 contentos_agent = workflow.compile()
