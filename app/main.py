@@ -113,3 +113,91 @@ async def compile_markdown(request: CompileRequest):
     except Exception as e:
         logger.error(f"Compilation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+class ExportRequest(BaseModel):
+    filepath: str # Path to the compiled .json file in the vault
+    slide_index: int = 0
+
+@contentos_application.post("/v1/export/png")
+async def export_png(request: ExportRequest):
+    """
+    Sprint 8: Asset Factory
+    Receives a path to a compiled JSON inside the vault and a slide index.
+    Returns the generated PNG bytes.
+    """
+    try:
+        from core.asset_factory import asset_factory
+        from core.models import LessonMetadata
+        import json
+        from fastapi.responses import Response
+        
+        vault_base = "/vault"
+        full_path = os.path.abspath(os.path.join(vault_base, request.filepath))
+        
+        if not full_path.startswith(vault_base) or not full_path.endswith(".json"):
+            raise HTTPException(status_code=400, detail="Invalid JSON filepath.")
+            
+        with open(full_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        metadata = LessonMetadata(**data)
+        
+        if metadata.type != "lesson" or not metadata.slides:
+            raise HTTPException(status_code=400, detail="Requested file is not a sequence with slides.")
+            
+        if request.slide_index < 0 or request.slide_index >= len(metadata.slides):
+            raise HTTPException(status_code=404, detail="Slide index out of range.")
+            
+        slide = metadata.slides[request.slide_index]
+        png_bytes = asset_factory.generate_png(slide)
+        
+        return Response(content=png_bytes, media_type="image/png")
+        
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="File not found.")
+    except Exception as e:
+        logger.error(f"Generate PNG failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@contentos_application.post("/v1/export/pptx")
+async def export_pptx(request: ExportRequest):
+    """
+    Sprint 8: Asset Factory
+    Receives a path to a compiled JSON inside the vault.
+    Returns the entire PPTX presentation bytes.
+    """
+    try:
+        from core.asset_factory import asset_factory
+        from core.models import LessonMetadata
+        import json
+        from fastapi.responses import Response
+        
+        vault_base = "/vault"
+        full_path = os.path.abspath(os.path.join(vault_base, request.filepath))
+        
+        if not full_path.startswith(vault_base) or not full_path.endswith(".json"):
+            raise HTTPException(status_code=400, detail="Invalid JSON filepath.")
+            
+        with open(full_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        metadata = LessonMetadata(**data)
+        
+        if metadata.type != "lesson":
+            raise HTTPException(status_code=400, detail="Requested file is not a compatible presentation sequence.")
+            
+        pptx_bytes = asset_factory.generate_pptx(metadata)
+        
+        return Response(
+            content=pptx_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            headers={
+                "Content-Disposition": f"attachment; filename=presentation_{os.path.basename(request.filepath).split('.')[0]}.pptx"
+            }
+        )
+        
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="JSON File not found.")
+    except Exception as e:
+        logger.error(f"Generate PPTX failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
