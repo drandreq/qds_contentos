@@ -1,7 +1,11 @@
 # Backend (FastAPI)
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
-google-genai>=1.0.0
+# AI & Machine Learning
+google-genai==0.3.0
+langgraph==0.2.73
+langchain-core==0.3.39
+langchain-google-genai==2.0.10
 google-auth>=2.30.0
 python-telegram-bot>=21.0
 python-frontmatter>=1.1.0

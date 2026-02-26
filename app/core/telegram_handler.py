@@ -268,7 +268,7 @@ class TelegramHandler:
                 # Send the result back
                 from telegram.constants import ParseMode
                 reply_text = f"🎙️ <b>Transcrição:</b>\n\n{transcription}\n\n<i>Classifique este áudio para o Vault:</i>"
-                formatted_html = safe_markdown_to_html(reply_text)
+                formatted_html = await safe_markdown_to_html(reply_text)
                 await bot.send_message(
                     chat_id=chat_id, 
                     text=formatted_html, 
@@ -281,7 +281,7 @@ class TelegramHandler:
                 logger.info("Voice processing worker cancelled.")
                 break
             except Exception as e:
-                logger.error(f"Error processing voice queue task: {e}")
+                logger.error(f"Error processing voice queue task: {e}", exc_info=True)
                 if "bot" in locals() and "chat_id" in locals():
                     await bot.send_message(chat_id=chat_id, text="❌ Ocorreu um erro na transcrição do áudio com a Gemini API.")
             finally:
