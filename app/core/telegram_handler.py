@@ -216,12 +216,13 @@ class TelegramHandler:
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 # Send the result back
+                from telegram.constants import ParseMode
                 reply_text = f"🎙️ **Transcrição:**\n\n{transcription}\n\n*Classifique este áudio para o Vault:*"
                 await bot.send_message(
                     chat_id=chat_id, 
                     text=reply_text, 
                     reply_markup=reply_markup, 
-                    parse_mode='Markdown'
+                    parse_mode=ParseMode.MARKDOWN
                 )
                 logger.info(f"Successfully transcribed and mapped {filepath} to {json_filename}.")
                 
@@ -278,9 +279,11 @@ class TelegramHandler:
             atomic_fs.write_file(f"03_voice/{filename}", json.dumps(meta_dict, indent=2))
             
             # Edit the message to visually lock in the classification
+            from telegram.constants import ParseMode
             original_text = query.message.text
             await query.edit_message_text(
-                text=f"{original_text}\n\n✅ **Classificado no Tensor como:** {dimension.upper()}"
+                text=f"{original_text}\n\n✅ **Classificado no Tensor como:** {dimension.upper()}",
+                parse_mode=ParseMode.MARKDOWN
             )
         except Exception as e:
             logger.error(f"Dimensional Triage Error: {e}")
