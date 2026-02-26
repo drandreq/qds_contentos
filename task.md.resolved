@@ -1,0 +1,40 @@
+# Content-OS — Task Checklist
+
+## Sprint 1: Skeleton (Infrastructure Only)
+- [ ] Create directory scaffold (`app/`, `app/core/`, `docker/`, `vault/`, `vault/.history/`, `vault/01_course/`, `vault/02_social/`)
+- [ ] Write `docker/Dockerfile.backend`
+- [ ] Write `docker/Dockerfile.frontend`
+- [ ] Write `app/requirements.txt`
+- [ ] Fix [manage.sh](file:///c:/NEUER_PROJECTER/qds_content_OS/manage.sh) (bash `=` bug, add `rebuild`/`status` commands)
+- [ ] Fix [docker-compose.yml](file:///c:/NEUER_PROJECTER/qds_content_OS/docker-compose.yml) (remove `version`, add healthchecks, network)
+- [ ] Create stub `app/main.py` (skeleton health endpoint)
+- [ ] Create stub `app/ui.py` (Streamlit hello page)
+- [ ] Create `app/core/__init__.py`
+- [ ] Populate [.env](file:///c:/NEUER_PROJECTER/qds_content_OS/.env) template
+- [ ] Verify: `docker compose build` exits 0, `curl /health` returns OK
+
+## Sprint 2: FastAPI Core (Auth)
+- [ ] Create `app/core/authenticator.py` (dual-layer Google AI init)
+- [ ] Update `app/main.py` with lifespan + full health endpoint
+
+## Sprint 3: Data Compiler (Parser)
+- [ ] Create `app/core/models.py` (Pydantic schemas)
+- [ ] Create `app/core/mp_dialect_parser.py` (MD → JSON compiler)
+
+## Sprint 4: Atomic Versioning
+- [ ] Create `app/core/atomic_filesystem.py` (snapshot-before-write)
+- [ ] Add `POST /v1/compile` to `main.py`
+
+## Sprint 5: Telegram Text Ingestion
+- [ ] Create `app/core/telegram_handler.py` (text messages)
+- [ ] Add `POST /v1/telegram/webhook` to `main.py`
+
+## Sprint 6: Telegram Voice Ingestion
+- [ ] Add voice → Gemini transcription to `telegram_handler.py`
+
+## Sprint 7: Streamlit Studio
+- [ ] Build timeline view, lesson editor, slide previewer, commit button in `ui.py`
+
+## Sprint 8: Asset Factory
+- [ ] Create `app/core/asset_factory.py` (PNG + PPTX export)
+- [ ] Add `/v1/export/png` and `/v1/export/pptx` to `main.py`

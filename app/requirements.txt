@@ -1,0 +1,15 @@
+# Backend (FastAPI)
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+google-genai>=1.0.0
+google-auth>=2.30.0
+python-telegram-bot>=21.0
+python-frontmatter>=1.1.0
+pydantic>=2.7.0
+
+# Frontend (Streamlit)
+streamlit>=1.37.0
+
+# Asset Factory (Sprint 8)
+Pillow>=10.4.0
+python-pptx>=1.0.0

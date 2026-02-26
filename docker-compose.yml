@@ -1,0 +1,59 @@
+services:
+  # The Brain: FastAPI + Telegram Webhook Handler
+  backend-engine:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.backend
+    container_name: contentos_backend
+    env_file: .env
+    volumes:
+      - ./app:/app
+      - ./vault:/vault
+      # Sharing ADC credentials from the sidecar
+      - gcloud_config:/root/.config/gcloud
+    ports:
+      - "8000:8000"
+    restart: always
+    networks:
+      - contentos_network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # The Face: Streamlit UI
+  streamlit-ui:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.frontend
+    container_name: contentos_ui
+    env_file: .env
+    volumes:
+      - ./app:/app
+      - ./vault:/vault
+    ports:
+      - "8501:8501"
+    networks:
+      - contentos_network
+    depends_on:
+      backend-engine:
+        condition: service_healthy
+
+  # The Identity: GCloud SDK for ADC
+  gcloud-sidecar:
+    image: google/cloud-sdk:slim
+    container_name: contentos_gcloud
+    volumes:
+      - gcloud_config:/root/.config/gcloud
+    networks:
+      - contentos_network
+    entrypoint: [ "tail", "-f", "/dev/null" ]
+
+volumes:
+  gcloud_config:
+
+
+networks:
+  contentos_network:
+    driver: bridge

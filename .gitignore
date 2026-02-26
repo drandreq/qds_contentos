@@ -1,0 +1,31 @@
+# .gitignore - Content-OS Repository Security
+# Physician-Programmer Standard: Comprehensive and Ordered
+
+# Security & Credentials
+.env
+*.pem
+*.key
+gcloud_config/
+.history/
+
+# Python Environment
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+build/
+dist/
+
+# Operating System & IDEs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Docker & Logs
+*.log
+docker-compose.override.yml
+'''

@@ -1,0 +1,25 @@
+# .cursorignore - AI Context Protection
+# Physician-Programmer Standard: Explicit Exclusion
+
+# Sensitive Infrastructure
+.env
+.git/
+gcloud_config/
+
+# Large Metadata & Snapshots
+# We ignore .history because we don't want the AI to get confused 
+# with past versions when writing new code or content.
+.history/
+vault/.history/
+
+# Build Assets
+__pycache__/
+node_modules/
+dist/
+build/
+
+# Binary & Non-Text Assets
+*.png
+*.pptx
+*.jpg
+*.pdf
