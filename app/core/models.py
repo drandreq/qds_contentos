@@ -10,6 +10,19 @@ class SlideDirective(BaseModel):
     content: str = Field(description="The primary text/content for the slide.")
     raw_json: str = Field(description="The original JSON string parsed from the directive.")
 
+class HeptatomoTensor(BaseModel):
+    """
+    Rank-7 Tensor (V ∈ ℝ^7) representing the dimensional weights of content.
+    Each dimension ranges from 0.0 to 1.0.
+    """
+    logos: float = Field(default=0.0, ge=0.0, le=1.0, description="Pure reason, philosophy, mathematics.")
+    techne: float = Field(default=0.0, ge=0.0, le=1.0, description="Craftsmanship, engineering, code, architecture.")
+    ethos: float = Field(default=0.0, ge=0.0, le=1.0, description="Ethics, moral duty, character.")
+    bios: float = Field(default=0.0, ge=0.0, le=1.0, description="The biological, the medical, life.")
+    strategos: float = Field(default=0.0, ge=0.0, le=1.0, description="Strategy, business value, growth.")
+    polis: float = Field(default=0.0, ge=0.0, le=1.0, description="Public health, society, politics, impact.")
+    pathos: float = Field(default=0.0, ge=0.0, le=1.0, description="Empathy, emotion, psychology.")
+
 class LessonMetadata(BaseModel):
     """
     Represents the full data model for a course lesson (MRWD).
@@ -20,6 +33,7 @@ class LessonMetadata(BaseModel):
     word_count: int = Field(description="Total word count of the actual spoken script.")
     ellipsis_count: int = Field(description="Number of rhythmic pauses (...) detected.")
     estimated_duration_seconds: int = Field(description="Calculated duration based on words per minute + pauses.")
+    dimensional_tensor: Optional[HeptatomoTensor] = Field(default=None, description="The 7D Connectome weight representation.")
     slides: List[SlideDirective] = Field(default_factory=list, description="All slide directives found in the text.")
     compiled_at: datetime = Field(default_factory=datetime.utcnow, description="Timestamp of compilation.")
 

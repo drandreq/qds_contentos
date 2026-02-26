@@ -16,6 +16,9 @@ def remover_acentos( texto_original = "" ):
 
 def codificar_texto_para_emoji( emoji_base = "🩺", texto_oculto = "" ):
   texto_limpo = remover_acentos( texto_original = texto_oculto )
+
+  # texto_limpo = texto_limpo.replace( " ", "_" ).replace( "\n", "_" ).replace( "\r", "" )
+
   emoji_codificado = emoji_base
   
   for caractere_atual in texto_limpo:
