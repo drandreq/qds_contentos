@@ -16,7 +16,9 @@ VAULT_DIR = "/vault"
 def get_vault_files():
     """Fetches all JSON files from the vault."""
     files = []
-    for root, _, filenames in os.walk(VAULT_DIR):
+    for root, dirs, filenames in os.walk(VAULT_DIR):
+        # Prevent traversal into .history or other hidden directories
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
         for filename in filenames:
             if filename.endswith(".json"):
                 # Store paths relative to vault base for cleaner UI and API parsing
